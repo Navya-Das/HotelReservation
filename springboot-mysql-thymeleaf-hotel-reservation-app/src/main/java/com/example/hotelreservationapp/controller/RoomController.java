@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.hotelreservationapp.entity.Hotel;
 import com.example.hotelreservationapp.entity.Room;
 import com.example.hotelreservationapp.service.RoomService;
 
@@ -57,4 +58,38 @@ public class RoomController {
             return "room-form";
         }
     }
+    
+ // Show edit hotel form
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        Room room = roomService.getRoomById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid room id: " + id));
+        model.addAttribute("room", room);
+        return "room-form";
+    }
+ // Update hotel
+    @PostMapping("/edit/{id}")
+    public String updateRoom(@PathVariable Long id, Room room, BindingResult result, RedirectAttributes redirectAttributes, Model model) {
+        if (result.hasErrors()) {
+            return "room-form";
+        }
+        room.setId(id);
+        try {
+            roomService.saveOrUpdateRoom(room);
+            redirectAttributes.addFlashAttribute("successMessage", "Room updated successfully");
+            return "redirect:/rooms";
+        } catch (DataIntegrityViolationException ex) {
+            model.addAttribute("errorMessage", "Enter unique data.");
+            return "room-form";
+        }
+    }
+
+    //Delete hotel
+    @GetMapping("/delete/{id}")
+    public String deleteRoom(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    	roomService.deleteRoom(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Room deleted successfully");
+        return "redirect:/rooms";
+    }
 }
+
